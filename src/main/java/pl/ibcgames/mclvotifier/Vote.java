@@ -1,55 +1,99 @@
 package pl.ibcgames.mclvotifier;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.util.Date;
-
 public class Vote implements CommandExecutor {
 
-    String token = Votifier.plugin.getConfiguration().get().getString("server_id");
-    JSONArray messages;
-    String url;
-    Date lastUpdate = new Date();
+	private final String token = Votifier.plugin.getConfiguration().get().getString("server_id");
+	private List<String> messages = new ArrayList<>();
+	private String url;
+	private Date lastUpdate = new Date();
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        Runnable runnable = () -> {
-            try {
-                if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
-                    sender.sendMessage(Utils.message("&cNo server id found in MCL-Votifier config"));
-                    sender.sendMessage(Utils.message("&cHow to use this plugin? See tutorial at:"));
-                    sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
-                    return;
-                }
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-                long diff = new Date().getTime() - lastUpdate.getTime();
-                long diffMinutes = diff / (60 * 1000) % 60;
-                lastUpdate = new Date();
+		Bukkit.getScheduler().runTaskAsynchronously(Votifier.plugin, () -> {
 
-                if (url == null || diffMinutes >= 60F) {
-                    sender.sendMessage(Utils.message("&aRefreshing data..."));
-                    JSONObject res = Utils.sendRequest("https://minecraft-servers.gg/api/server-by-key/" + token + "/get-vote");
+			try {
 
-                    url = res.get("vote_url").toString();
-                    messages = (JSONArray) res.get("text");
-                }
+				// Check for a valid token.
+				if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
 
-                messages.forEach((message) -> {
-                    sender.sendMessage(Utils.message(message.toString()));
-                });
-                sender.sendMessage(Utils.message(url));
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-                sender.sendMessage(Utils.message("&cUnable to fetch data, please try again later"));
-            }
-        };
-        Thread thread = new Thread(runnable);
-        thread.start();
-        return true;
-    }
+					Utils.message(sender, "<red>No server id found in MCL-Votifier config");
+					Utils.message(sender, "<red>How to use this plugin? See tutorial at:");
+					Utils.message(sender, "<green>https://minecraft-servers.gg/mcl-votifier-plugin");
+
+					return;
+
+				}
+
+				// Check if data needs to be refreshed.
+				long diffMinutes = (new Date().getTime() - lastUpdate.getTime()) / (60 * 1000);
+				if (url == null || diffMinutes >= 60) {
+
+					Utils.message(sender, "<green>Refreshing data...");
+
+					JSONObject res = Utils.sendRequest("https://minecraft-servers.gg/api/server-by-key/" + token + "/get-vote");
+					url = (String) res.get("vote_url");
+
+					messages = convertJSONArrayToList((JSONArray) res.get("text"));
+
+					// Update last refresh time.
+					lastUpdate = new Date();
+
+				}
+
+				messages.forEach(message -> Utils.message(sender, message));
+
+				Utils.message(sender, url);
+
+			}
+			catch (Exception error) {
+
+				error.printStackTrace();
+
+				Utils.message(sender, "<red>Unable to fetch data, please try again later!");
+
+			}
+
+		});
+
+		return true;
+
+	}
+
+	// Utility to convert JSONArray to List<String>.
+	private List<String> convertJSONArrayToList(JSONArray jsonArray) {
+
+		List<String> list = new ArrayList<>();
+		for (Object item : jsonArray) {
+
+			// Ensure type safety.
+			if (item instanceof String) {
+
+				list.add((String) item);
+
+			}
+			else {
+
+				// Log a warning or handle unexpected types gracefully.
+				System.out.println("Unexpected item type in JSONArray: " + item.getClass().getName());
+
+			}
+
+		}
+
+		return list;
+
+	}
+
 }

@@ -1,8 +1,9 @@
 main: pl.ibcgames.mclvotifier.Votifier
-name: MCL-Votifier
-authors: [kaziu687, kisi69]
+name: MCL-Votifier-OG
+authors: [kaziu687, kisi69, NotAlexNoyle]
 website: https://minecraft-servers.gg
-version: @version@
+version: '${version}'
+api-version: '${apiVersion}'
 commands:
   mcl-test:
     description: Test vote reward's commands
