@@ -1,10 +1,8 @@
 package pl.ibcgames.mclvotifier.Modules;
 
 import java.io.File;
-
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-
 import pl.ibcgames.mclvotifier.Votifier;
 
 public class Configuration {
@@ -16,7 +14,6 @@ public class Configuration {
         this.plugin = plugin;
 
         this.reload();
-
     }
 
     public void reload() {
@@ -26,23 +23,18 @@ public class Configuration {
             this.plugin.warning("Configuration file not found. Generating new...");
 
             this.plugin.saveDefaultConfig();
-
         }
 
         this.plugin.reloadConfig();
-
     }
 
     public ConfigurationSection get(String s) {
 
         return this.plugin.getConfig().getConfigurationSection(s);
-
     }
 
     public FileConfiguration get() {
 
         return this.plugin.getConfig();
-
     }
-
 }

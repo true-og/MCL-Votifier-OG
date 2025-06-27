@@ -6,18 +6,19 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class Utils {
 
-    public static String message(String message) {
+    private static final MiniMessage MM = MiniMessage.miniMessage();
 
-        return ChatColor.translateAlternateColorCodes('&', message);
+    public static Component message(String raw) {
 
+        return MM.deserialize(raw);
     }
 
     public static JSONObject sendRequest(String url) {
@@ -44,7 +45,6 @@ public class Utils {
             } else {
 
                 streamReader = new InputStreamReader(con.getInputStream());
-
             }
 
             BufferedReader in = new BufferedReader(streamReader);
@@ -53,7 +53,6 @@ public class Utils {
             while ((inputLine = in.readLine()) != null) {
 
                 content.append(inputLine);
-
             }
 
             in.close();
@@ -66,11 +65,8 @@ public class Utils {
         } catch (ParseException | IOException error) {
 
             error.printStackTrace();
-
         }
 
         return new JSONObject();
-
     }
-
 }

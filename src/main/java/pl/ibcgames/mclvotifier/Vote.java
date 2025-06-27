@@ -1,7 +1,6 @@
 package pl.ibcgames.mclvotifier;
 
 import java.util.Date;
-
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,7 +19,6 @@ public class Vote implements CommandExecutor {
 
         @SuppressWarnings("unchecked")
         Runnable runnable = () -> {
-
             try {
 
                 if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
@@ -30,7 +28,6 @@ public class Vote implements CommandExecutor {
                     sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
 
                     return;
-
                 }
 
                 long diff = new Date().getTime() - lastUpdate.getTime();
@@ -42,19 +39,16 @@ public class Vote implements CommandExecutor {
 
                     sender.sendMessage(Utils.message("&aRefreshing data..."));
 
-                    JSONObject res = Utils
-                            .sendRequest("https://minecraft-servers.gg/api/server-by-key/" + token + "/get-vote");
+                    JSONObject res =
+                            Utils.sendRequest("https://minecraft-servers.gg/api/server-by-key/" + token + "/get-vote");
 
                     url = res.get("vote_url").toString();
 
                     messages = (JSONArray) res.get("text");
-
                 }
 
                 messages.forEach((message) -> {
-
                     sender.sendMessage(Utils.message(message.toString()));
-
                 });
 
                 sender.sendMessage(Utils.message(url));
@@ -64,9 +58,7 @@ public class Vote implements CommandExecutor {
                 error.printStackTrace();
 
                 sender.sendMessage(Utils.message("&cUnable to fetch data, please try again later."));
-
             }
-
         };
 
         Thread thread = new Thread(runnable);
@@ -74,7 +66,5 @@ public class Vote implements CommandExecutor {
         thread.start();
 
         return true;
-
     }
-
 }

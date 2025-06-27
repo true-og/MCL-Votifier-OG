@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -22,7 +21,6 @@ public class Test implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         Runnable runnable = () -> {
-
             if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
 
                 sender.sendMessage(Utils.message("&cNo server id found in MCL-Votifier config"));
@@ -30,7 +28,6 @@ public class Test implements CommandExecutor {
                 sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
 
                 return;
-
             }
 
             if (!sender.isOp()) {
@@ -38,7 +35,6 @@ public class Test implements CommandExecutor {
                 sender.sendMessage(Utils.message("&cThis command can be used only by server operator"));
 
                 return;
-
             }
 
             if (require_permission && !sender.hasPermission("mclvotifier.reward")) {
@@ -46,7 +42,6 @@ public class Test implements CommandExecutor {
                 sender.sendMessage(Utils.message("&cYou need &amclvotifier.reward &c permission to use this command"));
 
                 return;
-
             }
 
             sender.sendMessage(Utils.message("&aThis command can be used to test a reward"));
@@ -54,7 +49,6 @@ public class Test implements CommandExecutor {
             sender.sendMessage(Utils.message("&asimply claim your reward using &c/mcl-reward &acommand"));
 
             execute(sender);
-
         };
 
         Thread thread = new Thread(runnable);
@@ -62,7 +56,6 @@ public class Test implements CommandExecutor {
         thread.start();
 
         return true;
-
     }
 
     private void execute(CommandSender sender) {
@@ -72,14 +65,13 @@ public class Test implements CommandExecutor {
             cmd = cmd.replace("{PLAYER}", sender.getName());
             String finalCmd = cmd;
 
-            Bukkit.getScheduler().scheduleSyncDelayedTask(Votifier.getPlugin(), () -> {
-
-                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
-
-            }, 0);
-
+            Bukkit.getScheduler()
+                    .scheduleSyncDelayedTask(
+                            Votifier.getPlugin(),
+                            () -> {
+                                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
+                            },
+                            0);
         }
-
     }
-
 }
