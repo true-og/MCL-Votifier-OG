@@ -14,6 +14,7 @@ public class Configuration {
         this.plugin = plugin;
 
         this.reload();
+
     }
 
     public void reload() {
@@ -23,18 +24,23 @@ public class Configuration {
             this.plugin.warning("Configuration file not found. Generating new...");
 
             this.plugin.saveDefaultConfig();
+
         }
 
         this.plugin.reloadConfig();
+
     }
 
     public ConfigurationSection get(String s) {
 
         return this.plugin.getConfig().getConfigurationSection(s);
+
     }
 
     public FileConfiguration get() {
 
         return this.plugin.getConfig();
+
     }
+
 }

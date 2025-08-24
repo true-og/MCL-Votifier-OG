@@ -19,6 +19,7 @@ public class Utils {
     public static Component message(String raw) {
 
         return MM.deserialize(raw);
+
     }
 
     public static JSONObject sendRequest(String url) {
@@ -45,6 +46,7 @@ public class Utils {
             } else {
 
                 streamReader = new InputStreamReader(con.getInputStream());
+
             }
 
             BufferedReader in = new BufferedReader(streamReader);
@@ -53,6 +55,7 @@ public class Utils {
             while ((inputLine = in.readLine()) != null) {
 
                 content.append(inputLine);
+
             }
 
             in.close();
@@ -65,8 +68,11 @@ public class Utils {
         } catch (ParseException | IOException error) {
 
             error.printStackTrace();
+
         }
 
         return new JSONObject();
+
     }
+
 }

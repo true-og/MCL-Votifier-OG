@@ -22,6 +22,7 @@ public class Reward implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         Runnable runnable = () -> {
+
             if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
 
                 sender.sendMessage(Utils.message("&cNo server id found in MCL-Votifier config"));
@@ -29,6 +30,7 @@ public class Reward implements CommandExecutor {
                 sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
 
                 return;
+
             }
 
             if (require_permission && !sender.hasPermission("mclvotifier.reward")) {
@@ -36,6 +38,7 @@ public class Reward implements CommandExecutor {
                 sender.sendMessage(Utils.message("&cYou need &amclvotifier.reward &c permission to use this command"));
 
                 return;
+
             }
 
             if (timeouts.containsKey(sender.getName())) {
@@ -50,7 +53,9 @@ public class Reward implements CommandExecutor {
                             Utils.message("&cThis command can be used again after " + remaining + " seconds"));
 
                     return;
+
                 }
+
             }
 
             sender.sendMessage(Utils.message("&aValidating your vote, please wait..."));
@@ -61,6 +66,7 @@ public class Reward implements CommandExecutor {
             timeouts.put(sender.getName(), new Date());
 
             execute(res, sender);
+
         };
 
         Thread thread = new Thread(runnable);
@@ -68,6 +74,7 @@ public class Reward implements CommandExecutor {
         thread.start();
 
         return true;
+
     }
 
     private void execute(JSONObject res, CommandSender sender) {
@@ -77,11 +84,13 @@ public class Reward implements CommandExecutor {
         if (res.containsKey("can_claim_reward")) {
 
             canClaimReward = Boolean.parseBoolean(res.get("can_claim_reward").toString());
+
         }
 
         if (res.containsKey("error")) {
 
             sender.sendMessage(Utils.message(res.get("error").toString()));
+
         }
 
         if (!canClaimReward && !res.containsKey("error")) {
@@ -89,6 +98,7 @@ public class Reward implements CommandExecutor {
             sender.sendMessage(Utils.message("&cUnable to claim reward, try again later"));
 
             return;
+
         }
 
         if (canClaimReward) {
@@ -98,14 +108,16 @@ public class Reward implements CommandExecutor {
                 cmd = cmd.replace("{PLAYER}", sender.getName());
                 String finalCmd = cmd;
 
-                Bukkit.getScheduler()
-                        .scheduleSyncDelayedTask(
-                                Votifier.getPlugin(),
-                                () -> {
-                                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
-                                },
-                                0);
+                Bukkit.getScheduler().scheduleSyncDelayedTask(Votifier.getPlugin(), () -> {
+
+                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
+
+                }, 0);
+
             }
+
         }
+
     }
+
 }
