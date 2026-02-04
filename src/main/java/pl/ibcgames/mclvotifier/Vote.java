@@ -1,6 +1,7 @@
 package pl.ibcgames.mclvotifier;
 
 import java.util.Date;
+import java.util.Objects;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,68 +10,115 @@ import org.json.simple.JSONObject;
 
 public class Vote implements CommandExecutor {
 
-    String token = Votifier.getPlugin().getConfiguration().get().getString("server_id");
-    JSONArray messages;
-    String url;
-    Date lastUpdate = new Date();
+    private final Object cacheLock = new Object();
+    private JSONArray messages;
+    private String url;
+    private Date lastUpdate = new Date();
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        @SuppressWarnings("unchecked")
+        Votifier plugin = Votifier.getPlugin();
+        if (plugin == null) {
+
+            Votifier.getLog().warning("[MCL-Votifier-OG] Plugin not initialized; cannot execute command.");
+            return true;
+
+        }
+
+        String token = plugin.getConfiguration().get().getString("server_id");
+        if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
+
+            sender.sendMessage(Utils.message("&cNo server id found in MCL-Votifier config"));
+            sender.sendMessage(Utils.message("&cHow to use this plugin? See tutorial at:"));
+            sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
+
+            return true;
+
+        }
+
         Runnable runnable = () -> {
 
             try {
 
-                if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
+                boolean refresh;
+                synchronized (cacheLock) {
 
-                    sender.sendMessage(Utils.message("&cNo server id found in MCL-Votifier config"));
-                    sender.sendMessage(Utils.message("&cHow to use this plugin? See tutorial at:"));
-                    sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
+                    long diff = new Date().getTime() - lastUpdate.getTime();
+                    long diffMinutes = diff / (60 * 1000) % 60;
+                    refresh = url == null || diffMinutes >= 60F;
+                    if (refresh) {
 
-                    return;
+                        lastUpdate = new Date();
+
+                    }
 
                 }
 
-                long diff = new Date().getTime() - lastUpdate.getTime();
-                long diffMinutes = diff / (60 * 1000) % 60;
+                if (refresh) {
 
-                lastUpdate = new Date();
-
-                if (url == null || diffMinutes >= 60F) {
-
-                    sender.sendMessage(Utils.message("&aRefreshing data..."));
+                    plugin.getServer().getScheduler().runTask(plugin,
+                            () -> sender.sendMessage(Utils.message("&aRefreshing data...")));
 
                     JSONObject res = Utils
                             .sendRequest("https://minecraft-servers.gg/api/server-by-key/" + token + "/get-vote");
 
-                    url = res.get("vote_url").toString();
+                    Object responseUrl = res.get("vote_url");
+                    Object responseText = res.get("text");
+                    if (responseUrl == null || responseText == null) {
 
-                    messages = (JSONArray) res.get("text");
+                        throw new IllegalStateException(
+                                "Invalid response from minecraft-servers.gg. Expected vote_url and text.");
+
+                    }
+
+                    synchronized (cacheLock) {
+
+                        url = responseUrl.toString();
+                        messages = (JSONArray) responseText;
+
+                    }
 
                 }
 
-                messages.forEach((message) -> {
+                JSONArray cachedMessages;
+                String cachedUrl;
+                synchronized (cacheLock) {
 
-                    sender.sendMessage(Utils.message(message.toString()));
+                    cachedMessages = messages;
+                    cachedUrl = url;
+
+                }
+
+                if (cachedMessages == null || cachedUrl == null) {
+
+                    throw new IllegalStateException("Voting data is unavailable after refresh.");
+
+                }
+
+                JSONArray finalMessages = cachedMessages;
+                String finalUrl = cachedUrl;
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+
+                    finalMessages.forEach((message) -> sender.sendMessage(Utils.message(message.toString())));
+                    sender.sendMessage(Utils.message(finalUrl));
 
                 });
-
-                sender.sendMessage(Utils.message(url));
 
             } catch (Exception error) {
 
                 error.printStackTrace();
 
-                sender.sendMessage(Utils.message("&cUnable to fetch data, please try again later."));
+                plugin.warning("Failed to process /mcl-vote command: " + Objects.toString(error.getMessage()));
+
+                plugin.getServer().getScheduler().runTask(plugin,
+                        () -> sender.sendMessage(Utils.message("&cUnable to fetch data, please try again later.")));
 
             }
 
         };
 
-        Thread thread = new Thread(runnable);
-
-        thread.start();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, runnable);
 
         return true;
 
