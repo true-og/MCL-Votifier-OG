@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -12,72 +13,98 @@ import org.json.simple.JSONObject;
 
 public class Reward implements CommandExecutor {
 
-    String token = Votifier.getPlugin().getConfiguration().get().getString("server_id");
-    boolean require_permission = Votifier.getPlugin().getConfiguration().get().getBoolean("require_permission");
-    List<String> list = Votifier.getPlugin().getConfiguration().get().getStringList("commands_on_reward");
-    String[] array = list.toArray(new String[0]);
-    Map<String, Date> timeouts = new HashMap<>();
+    private final Map<String, Date> timeouts = new HashMap<>();
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
+        Votifier plugin = Votifier.getPlugin();
+        if (plugin == null) {
+
+            Votifier.getLog().warning("[MCL-Votifier-OG] Plugin not initialized; cannot execute command.");
+            return true;
+
+        }
+
+        String token = plugin.getConfiguration().get().getString("server_id");
+        if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
+
+            sender.sendMessage(Utils.message("&cNo server id found in MCL-Votifier config"));
+            sender.sendMessage(Utils.message("&cHow to use this plugin? See tutorial at:"));
+            sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
+
+            return true;
+
+        }
+
+        boolean requirePermission = plugin.getConfiguration().get().getBoolean("require_permission");
+        if (requirePermission && !sender.hasPermission("mclvotifier.reward")) {
+
+            sender.sendMessage(Utils.message("&cYou need &amclvotifier.reward &c permission to use this command"));
+
+            return true;
+
+        }
+
+        if (timeouts.containsKey(sender.getName())) {
+
+            Date d = timeouts.get(sender.getName());
+            long diff = (long) Math.floor((new Date().getTime() / 1000) - (d.getTime() / 1000));
+            if (diff < 60) {
+
+                long remaining = 60 - diff;
+
+                sender.sendMessage(Utils.message("&cThis command can be used again after " + remaining + " seconds"));
+
+                return true;
+
+            }
+
+        }
+
+        sender.sendMessage(Utils.message("&aValidating your vote, please wait..."));
+
+        List<String> commandList = plugin.getConfiguration().get().getStringList("commands_on_reward");
+        if (commandList.isEmpty()) {
+
+            sender.sendMessage(Utils.message("&cNo reward commands are configured. Check commands_on_reward."));
+            plugin.warning("commands_on_reward is empty; /mcl-reward has nothing to execute.");
+            return true;
+
+        }
+
         Runnable runnable = () -> {
 
-            if (token == null || token.equalsIgnoreCase("paste_server_id_here")) {
+            try {
 
-                sender.sendMessage(Utils.message("&cNo server id found in MCL-Votifier config"));
-                sender.sendMessage(Utils.message("&cHow to use this plugin? See tutorial at:"));
-                sender.sendMessage(Utils.message("&ahttps://minecraft-servers.gg/mcl-votifier-plugin"));
+                JSONObject res = Utils.sendRequest("https://minecraft-servers.gg/api/server-by-key/" + token
+                        + "/get-vote/" + sender.getName());
 
-                return;
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
 
-            }
+                    timeouts.put(sender.getName(), new Date());
+                    execute(res, sender, commandList);
 
-            if (require_permission && !sender.hasPermission("mclvotifier.reward")) {
+                });
 
-                sender.sendMessage(Utils.message("&cYou need &amclvotifier.reward &c permission to use this command"));
+            } catch (Exception error) {
 
-                return;
-
-            }
-
-            if (timeouts.containsKey(sender.getName())) {
-
-                Date d = timeouts.get(sender.getName());
-                long diff = (long) Math.floor((new Date().getTime() / 1000) - (d.getTime() / 1000));
-                if (diff < 60) {
-
-                    long remaining = 60 - diff;
-
-                    sender.sendMessage(
-                            Utils.message("&cThis command can be used again after " + remaining + " seconds"));
-
-                    return;
-
-                }
+                error.printStackTrace();
+                plugin.warning("Failed to process /mcl-reward command: " + Objects.toString(error.getMessage()));
+                plugin.getServer().getScheduler().runTask(plugin, () -> sender.sendMessage(
+                        Utils.message("&cUnable to validate your vote right now. Check server logs.")));
 
             }
-
-            sender.sendMessage(Utils.message("&aValidating your vote, please wait..."));
-
-            JSONObject res = Utils.sendRequest(
-                    "https://minecraft-servers.gg/api/server-by-key/" + token + "/get-vote/" + sender.getName());
-
-            timeouts.put(sender.getName(), new Date());
-
-            execute(res, sender);
 
         };
 
-        Thread thread = new Thread(runnable);
-
-        thread.start();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, runnable);
 
         return true;
 
     }
 
-    private void execute(JSONObject res, CommandSender sender) {
+    private void execute(JSONObject res, CommandSender sender, List<String> commandList) {
 
         boolean canClaimReward = false;
 
@@ -103,7 +130,7 @@ public class Reward implements CommandExecutor {
 
         if (canClaimReward) {
 
-            for (String cmd : list) {
+            for (String cmd : commandList) {
 
                 cmd = cmd.replace("{PLAYER}", sender.getName());
                 String finalCmd = cmd;
