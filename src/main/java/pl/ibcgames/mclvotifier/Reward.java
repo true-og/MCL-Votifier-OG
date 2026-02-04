@@ -77,8 +77,8 @@ public class Reward implements CommandExecutor {
 
             try {
 
-                JSONObject res = Utils.sendRequest("https://minecraft-servers.gg/api/server-by-key/" + token
-                        + "/get-vote/" + sender.getName());
+                JSONObject res = Utils.sendRequest(
+                        "https://minecraft-servers.gg/api/server-by-key/" + token + "/get-vote/" + sender.getName());
 
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
 
@@ -91,8 +91,8 @@ public class Reward implements CommandExecutor {
 
                 error.printStackTrace();
                 plugin.warning("Failed to process /mcl-reward command: " + Objects.toString(error.getMessage()));
-                plugin.getServer().getScheduler().runTask(plugin, () -> sender.sendMessage(
-                        Utils.message("&cUnable to validate your vote right now. Check server logs.")));
+                plugin.getServer().getScheduler().runTask(plugin, () -> sender
+                        .sendMessage(Utils.message("&cUnable to validate your vote right now. Check server logs.")));
 
             }
 

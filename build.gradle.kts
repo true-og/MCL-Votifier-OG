@@ -72,7 +72,7 @@ tasks.withType<AbstractArchiveTask>().configureEach { // Ensure reproducible .ja
 tasks.shadowJar {
     exclude("io.github.miniplaceholders.*") // Exclude the MiniPlaceholders package from being shadowed.
     isEnableRelocation = true
-    relocationPrefix = "${project.group}.shadow"
+    relocationPrefix = "net.trueog.mclvotifierog.shadow"
     archiveClassifier.set("") // Use empty string instead of null.
     minimize()
 }
