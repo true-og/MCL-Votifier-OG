@@ -11,5 +11,5 @@ require_permission: true
 # If you need to test reward you can use /mcl-test command (only for OPs!)
 # {PLAYER} will be replaced with /mcl-reward command sender's username
 commands_on_reward:
-  - "xp add {PLAYER} 15"
+  - "xp give {PLAYER} 15L"
   - "say {PLAYER} voted for &aTrue&4OG &eNetwork &rat Minecraft-Servers.gg!"

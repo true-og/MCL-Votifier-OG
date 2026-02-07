@@ -1,13 +1,16 @@
 package pl.ibcgames.mclvotifier.Modules;
 
 import java.io.File;
+
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+
+import net.trueog.utilitiesog.UtilitiesOG;
 import pl.ibcgames.mclvotifier.Votifier;
 
 public class Configuration {
 
-    private Votifier plugin;
+    private final Votifier plugin;
 
     public Configuration(Votifier plugin) {
 
@@ -21,7 +24,8 @@ public class Configuration {
 
         if (!new File(this.plugin.getDataFolder(), "config.yml").exists()) {
 
-            this.plugin.warning("Configuration file not found. Generating new...");
+            UtilitiesOG.logToConsole(Votifier.getPrefix(),
+                    "WARNING... config.yml not found. Using the default config file...");
 
             this.plugin.saveDefaultConfig();
 

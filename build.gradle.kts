@@ -41,9 +41,6 @@ tasks.named<ProcessResources>("processResources") {
 repositories {
     mavenCentral() // Import the Maven Central Maven Repository.
     gradlePluginPortal() // Import the Gradle Plugin Portal Maven Repository.
-    maven {
-        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    } // Import SpigotMC Maven Repository.
     maven { url = uri("https://oss.sonatype.org/content/groups/public/") } // Import OSS Sonatype Maven Repository.
     maven { url = uri("https://repo.purpurmc.org/snapshots") } // Import the PurpurMC Maven Repository.
 }
@@ -51,6 +48,7 @@ repositories {
 /* ---------------------- Java project deps ---------------------------- */
 dependencies {
     compileOnly("org.purpurmc.purpur:purpur-api:1.19.4-R0.1-SNAPSHOT") // Declare Purpur API version to be packaged.
+    compileOnlyApi(project(":libs:Utilities-OG")) // Import TrueOG Network Utilities-OG Java API (from source).
     implementation("com.googlecode.json-simple:json-simple:1.1") // Import Simple json API.
 }
 
