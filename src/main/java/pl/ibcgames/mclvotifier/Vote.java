@@ -2,6 +2,7 @@ package pl.ibcgames.mclvotifier;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,9 +10,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.trueog.utilitiesog.UtilitiesOG;
-import org.apache.commons.lang3.StringUtils;
 
 public class Vote implements CommandExecutor {
 
@@ -103,16 +104,13 @@ public class Vote implements CommandExecutor {
 
                         Utils.send(responder, "&6Vote for &aTrue&4OG &eNetwork &6on &aminecraft-servers.gg&6:");
 
-                        final String voteUrl = StringUtils.trim(cachedUrl);
+                        final String voteUrl = UtilitiesOG.stripFormatting(StringUtils.trim(cachedUrl));
 
-                        final Component clickableText = MiniMessage.miniMessage().deserialize(
-                            "<click:open_url:'" + voteUrl + "'>" +
-                            "<yellow><bold><underlined>Click here to vote!</underlined></bold></yellow>" +
-                            "</click>"
-                        );
+                        Component component = MiniMessage.miniMessage().deserialize(
+                                "<yellow><bold><underlined>Click here to vote!</underlined></bold></yellow>");
+                        component = component.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, voteUrl));
 
-                        responder.sendMessage(clickableText);
-
+                        responder.sendMessage(component);
 
                     });
 

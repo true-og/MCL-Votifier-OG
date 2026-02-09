@@ -12,4 +12,3 @@ require_permission: true
 # {PLAYER} will be replaced with /mcl-reward command sender's username
 commands_on_reward:
   - "xp give {PLAYER} 15L"
-  - "say {PLAYER} voted for &aTrue&4OG &eNetwork &rat Minecraft-Servers.gg!"

@@ -1,16 +1,22 @@
 package pl.ibcgames.mclvotifier;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import net.luckperms.api.LuckPerms;
 import net.trueog.utilitiesog.UtilitiesOG;
 import pl.ibcgames.mclvotifier.Modules.Configuration;
+import pl.ibcgames.mclvotifier.Modules.LuckPermsPrefix;
 
 public final class Votifier extends JavaPlugin {
 
     private static Votifier plugin;
     private static Configuration Config;
+    private static LuckPerms luckPerms;
 
     @Override
     public void onEnable() {
@@ -23,6 +29,19 @@ public final class Votifier extends JavaPlugin {
         this.registerCommand("mcl-vote", new Vote());
         this.registerCommand("mcl-reward", new Reward());
         this.registerCommand("mcl-test", new Test());
+
+        // Hook LuckPerms API.
+        final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager()
+                .getRegistration(LuckPerms.class);
+        if (provider != null) {
+
+            luckPerms = LuckPermsPrefix.hook();
+
+        } else {
+
+            getLogger().severe("LuckPerms not found – prefixes will be empty.");
+
+        }
 
     }
 
@@ -63,6 +82,12 @@ public final class Votifier extends JavaPlugin {
         }
 
         command.setExecutor(executor);
+
+    }
+
+    public static String getPlayerPrefix(Player p) {
+
+        return LuckPermsPrefix.getPrefixLegacy(luckPerms, p);
 
     }
 
